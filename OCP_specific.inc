@@ -4,11 +4,15 @@
 #include <memory>
 #include <fmt/format.h>
 
+// Added for C++17 STL integration (std::optional, std::variant, std::string_view)
+#include <pybind11/stl.h> 
+
 namespace py = pybind11;
 
-PYBIND11_DECLARE_HOLDER_TYPE(T, opencascade::handle<T>, true);
+// Updated to occ::handle for OCCT 8.0
+PYBIND11_DECLARE_HOLDER_TYPE(T, occ::handle<T>, true); 
 
-using opencascade::handle;
+using occ::handle;
 
 template <typename CppException>
 void register_occ_exception(py::handle scope,
@@ -22,7 +26,7 @@ void register_occ_exception(py::handle scope,
         try {
             std::rethrow_exception(p);
         } catch (const CppException &e) {
-            ex(e.GetMessageString());
+            ex(e.what()); // Updated from GetMessageString() to what() for OCCT 8.0
         }
     });    
 };
@@ -47,9 +51,9 @@ inline void copy_if_copy_constructible(T& t1, T& t2){
 
 };
 
-template <typename T> inline opencascade::handle<T> cast_pyobject(const py::object &arg){
+template <typename T> inline occ::handle<T> cast_pyobject(const py::object &arg){ // Updated to occ::handle
   if(py::isinstance(arg, py::type::of<T>()))
-      return opencascade::handle(py::cast<T*>(arg));
+      return occ::handle<T>(py::cast<T*>(arg)); // Updated to occ::handle
   else
       throw py::value_error(fmt::format("Cannot convert the argument to the required type {}", typeid(T).name()));
 };
